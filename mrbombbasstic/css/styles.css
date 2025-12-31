@@ -1,0 +1,41 @@
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+#header-nav {
+  background-color: #f8f8f8;
+  border-radius: 0;
+  border: 1px solid #e7e7e7;
+}
+
+.navbar-brand {
+  font-size: 1.8em;
+}
+
+#nav-list {
+  background-color: #ddd;
+  margin: 0;
+}
+
+#nav-list > li {
+  border-bottom: 1px solid #bbb;
+}
+
+#nav-list > li > a {
+  color: #000;
+  font-size: 1.2em;
+}
+
+.page-title {
+  margin: 30px 0;
+}
+
+.tall-section {
+  background-color: #e0e0e0;
+  padding: 25px;
+  height: 1000px;
+}
+
+.section-title {
+  margin-bottom: 20px;
+}
