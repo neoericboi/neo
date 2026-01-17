@@ -1,6 +1,7 @@
 $(function () {
   $("#navbarToggle").blur(function () {
-    if (window.innerWidth < 768) {
+    var screenWidth = window.innerWidth;
+    if (screenWidth < 768) {
       $("#collapsable-nav").collapse("hide");
     }
   });
@@ -11,21 +12,18 @@ $(function () {
 
   var homeHtmlUrl = "snippets/home-snippet.html";
 
-  // ===== CORS FIX (LOCAL DEV) =====
-  // The Heroku endpoint is currently not sending CORS headers for localhost,
-  // so the browser blocks it. We use a CORS proxy so the assignment works locally.
-  // If your grader environment doesn't need this, it still works fine.
+  // ====== CORS PROXY (REQUIRED FOR GITHUB PAGES) ======
+  // GitHub Pages cannot directly call the Heroku API due to CORS.
+  // This proxy returns the remote content with proper CORS headers.
   var CORS_PROXY = "https://api.allorigins.win/raw?url=";
   function proxify(url) {
     return CORS_PROXY + encodeURIComponent(url);
   }
+  // ====================================================
 
   var API_BASE = "https://davids-restaurant.herokuapp.com";
   var allCategoriesUrl = API_BASE + "/categories.json";
-  function menuItemsUrl(categoryShort) {
-    return API_BASE + "/menu_items.json?category=" + categoryShort;
-  }
-  // ===============================
+  var menuItemsUrl = API_BASE + "/menu_items.json?category=";
 
   var categoriesTitleHtml = "snippets/categories-title-snippet.html";
   var categoryHtml = "snippets/category-snippet.html";
@@ -54,10 +52,12 @@ $(function () {
 
   // Remove the class 'active' from home and switch to Menu button
   var switchMenuToActive = function () {
+    // Remove 'active' from home button
     var classes = document.querySelector("#navHomeButton").className;
     classes = classes.replace(new RegExp("active", "g"), "");
     document.querySelector("#navHomeButton").className = classes;
 
+    // Add 'active' to menu button if not already there
     classes = document.querySelector("#navMenuButton").className;
     if (classes.indexOf("active") === -1) {
       classes += " active";
@@ -69,7 +69,7 @@ $(function () {
   document.addEventListener("DOMContentLoaded", function () {
     showLoading("#main-content");
 
-    // ✅ Assignment 5: Load categories first, then build home with random category
+    // Load categories first, then build home HTML with random category
     $ajaxUtils.sendGetRequest(
       proxify(allCategoriesUrl),
       buildAndShowHomeHTML,
@@ -77,21 +77,25 @@ $(function () {
     );
   });
 
-  // Builds HTML for the home page based on categories array returned from the server.
+  // Builds HTML for the home page based on categories array returned from server.
   function buildAndShowHomeHTML(categories) {
+    // Load home snippet page
     $ajaxUtils.sendGetRequest(
       homeHtmlUrl,
       function (homeHtml) {
-        // ✅ Choose random category short_name
-        var chosenCategoryShortName = chooseRandomCategory(categories).short_name;
+        // Choose random category short_name
+        var chosenCategoryShortName =
+          chooseRandomCategory(categories).short_name;
 
-        // ✅ Replace {{randomCategoryShortName}} with quoted value so onclick stays valid
+        // Replace {{randomCategoryShortName}} with quoted value
+        // so onclick becomes: $dc.loadMenuItems('A');
         var homeHtmlToInsertIntoMainPage = insertProperty(
           homeHtml,
           "randomCategoryShortName",
           "'" + chosenCategoryShortName + "'"
         );
 
+        // Insert HTML into main-content
         insertHtml("#main-content", homeHtmlToInsertIntoMainPage);
       },
       false
@@ -115,10 +119,11 @@ $(function () {
   };
 
   // Load the menu items view
+  // 'categoryShort' is a short_name for a category
   dc.loadMenuItems = function (categoryShort) {
     showLoading("#main-content");
     $ajaxUtils.sendGetRequest(
-      proxify(menuItemsUrl(categoryShort)),
+      proxify(menuItemsUrl + categoryShort),
       buildAndShowMenuItemsHTML,
       true
     );
@@ -126,12 +131,15 @@ $(function () {
 
   // Builds HTML for the categories page based on the data from the server
   function buildAndShowCategoriesHTML(categories) {
+    // Load title snippet of categories page
     $ajaxUtils.sendGetRequest(
       categoriesTitleHtml,
       function (categoriesTitleHtml) {
+        // Retrieve single category snippet
         $ajaxUtils.sendGetRequest(
           categoryHtml,
           function (categoryHtml) {
+            // Switch CSS class active to menu button
             switchMenuToActive();
 
             var categoriesViewHtml = buildCategoriesViewHtml(
@@ -148,15 +156,20 @@ $(function () {
     );
   }
 
-  // Build categories view HTML
+  // Using categories data and snippets html build categories view HTML
   function buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml) {
     var finalHtml = categoriesTitleHtml;
     finalHtml += "<section class='row'>";
 
+    // Loop over categories
     for (var i = 0; i < categories.length; i++) {
       var html = categoryHtml;
-      html = insertProperty(html, "name", "" + categories[i].name);
-      html = insertProperty(html, "short_name", categories[i].short_name);
+      var name = "" + categories[i].name;
+      var short_name = categories[i].short_name;
+
+      html = insertProperty(html, "name", name);
+      html = insertProperty(html, "short_name", short_name);
+
       finalHtml += html;
     }
 
@@ -166,12 +179,15 @@ $(function () {
 
   // Builds HTML for the single category page based on the data from the server
   function buildAndShowMenuItemsHTML(categoryMenuItems) {
+    // Load title snippet of menu items page
     $ajaxUtils.sendGetRequest(
       menuItemsTitleHtml,
       function (menuItemsTitleHtml) {
+        // Retrieve single menu item snippet
         $ajaxUtils.sendGetRequest(
           menuItemHtml,
           function (menuItemHtml) {
+            // Switch CSS class active to menu button
             switchMenuToActive();
 
             var menuItemsViewHtml = buildMenuItemsViewHtml(
