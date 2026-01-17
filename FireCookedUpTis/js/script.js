@@ -1,7 +1,6 @@
 $(function () {
   $("#navbarToggle").blur(function () {
-    var screenWidth = window.innerWidth;
-    if (screenWidth < 768) {
+    if (window.innerWidth < 768) {
       $("#collapsable-nav").collapse("hide");
     }
   });
@@ -12,10 +11,10 @@ $(function () {
 
   var homeHtmlUrl = "snippets/home-snippet.html";
 
-  // ✅ Better proxy (returns raw JSON reliably)
-  var CORS_PROXY = "https://corsproxy.io/?";
+  // ✅ GitHub Pages CORS proxy (more reliable than allorigins for JSON)
+  var CORS_PROXY = "https://cors.isomorphic-git.org/";
   function proxify(url) {
-    return CORS_PROXY + encodeURIComponent(url);
+    return CORS_PROXY + url;
   }
 
   var API_BASE = "https://davids-restaurant.herokuapp.com";
@@ -32,10 +31,7 @@ $(function () {
   };
 
   var showLoading = function (selector) {
-    insertHtml(
-      selector,
-      "<div class='text-center'><img src='images/ajax-loader.gif'></div>"
-    );
+    insertHtml(selector, "<div class='text-center'><img src='images/ajax-loader.gif'></div>");
   };
 
   var insertProperty = function (string, propName, propValue) {
@@ -69,8 +65,7 @@ $(function () {
     $ajaxUtils.sendGetRequest(
       homeHtmlUrl,
       function (homeHtml) {
-        var chosenCategoryShortName =
-          chooseRandomCategory(categories).short_name;
+        var chosenCategoryShortName = chooseRandomCategory(categories).short_name;
 
         var homeHtmlToInsertIntoMainPage = insertProperty(
           homeHtml,
@@ -115,12 +110,7 @@ $(function () {
           categoryHtml,
           function (categoryHtml) {
             switchMenuToActive();
-
-            var categoriesViewHtml = buildCategoriesViewHtml(
-              categories,
-              categoriesTitleHtml,
-              categoryHtml
-            );
+            var categoriesViewHtml = buildCategoriesViewHtml(categories, categoriesTitleHtml, categoryHtml);
             insertHtml("#main-content", categoriesViewHtml);
           },
           false
@@ -153,12 +143,7 @@ $(function () {
           menuItemHtml,
           function (menuItemHtml) {
             switchMenuToActive();
-
-            var menuItemsViewHtml = buildMenuItemsViewHtml(
-              categoryMenuItems,
-              menuItemsTitleHtml,
-              menuItemHtml
-            );
+            var menuItemsViewHtml = buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml);
             insertHtml("#main-content", menuItemsViewHtml);
           },
           false
@@ -169,16 +154,8 @@ $(function () {
   }
 
   function buildMenuItemsViewHtml(categoryMenuItems, menuItemsTitleHtml, menuItemHtml) {
-    menuItemsTitleHtml = insertProperty(
-      menuItemsTitleHtml,
-      "name",
-      categoryMenuItems.category.name
-    );
-    menuItemsTitleHtml = insertProperty(
-      menuItemsTitleHtml,
-      "special_instructions",
-      categoryMenuItems.category.special_instructions
-    );
+    menuItemsTitleHtml = insertProperty(menuItemsTitleHtml, "name", categoryMenuItems.category.name);
+    menuItemsTitleHtml = insertProperty(menuItemsTitleHtml, "special_instructions", categoryMenuItems.category.special_instructions);
 
     var finalHtml = menuItemsTitleHtml;
     finalHtml += "<section class='row'>";
